@@ -72,11 +72,11 @@
 \newcommand{\sphere}{{\Gamma_{\text{sph}}}}
 \newcommand{\tor}{{\Gamma_{\text{tor}}}}
 
-\newcommand{\HOne}{{\mathbb H^1}}
-\newcommand{\LTwo}{{\mathbb L^2}}
-\newcommand{\LTwoSpace}[1][\Gamma]{{\mathbb L^2\left({#1}\right)}}
-\newcommand{\LInfSpace}[1][\Gamma]{{\mathbb L^\infty\left({#1}\right)}}
-\newcommand{\HOneSpace}[1][\Gamma]{{\mathbb H^1\left({#1}\right)}}
+\newcommand{\HOne}{{H^1}}
+\newcommand{\LTwo}{{L^2}}
+\newcommand{\LTwoSpace}[1][\Gamma]{{L^2\left({#1}\right)}}
+\newcommand{\LInfSpace}[1][\Gamma]{{L^\infty\left({#1}\right)}}
+\newcommand{\HOneSpace}[1][\Gamma]{{H^1\left({#1}\right)}}
 
 \newcommand{\AZ}[1]{{\color{red}\textbf{AZ}:~#1}}
 
@@ -255,22 +255,24 @@ We follow~\cite{lederer2019divergence} in choosing the initial condition. We set
 	\tilde{\vect u}_0(\xi, \eta) &\coloneqq \tanh(2\,\eta/\delta_0)\,r(\eta)\,\vect e_\xi + c_n\vCurl_\Gamma\psi, \\
 	\psi(\xi, \eta) &\coloneqq e^{-(\eta/\delta_0)^2}\,\big(a_a\cos(m_a\,\pi\,\xi) + a_b\cos(m_b\,\pi\,\eta)\big).
 \end{split}\end{align}
-with $r$ being the distance from the unit sphere to $z$-axis. We set $\delta_0 \coloneqq 0.05$ (around $\|z\| > \delta_0$ the velocity field corresponds to a rigid body rotation around the $z$-axis), $c_n \coloneqq 10^{-2}$ (perturbation scaling), $a_a = 1$ and $m_a = 32$ (perturbation magnitude and frequency). We ignore the second perturbation term, i.e. we choose~$a_b \coloneqq 0$. Note that $\tilde{\vect u}$ is tangential by definition, $\tilde{\vect u} \equiv \vect P\,\tilde{\vect u}$. We set the initial condition to be~$\vect u_0 \coloneqq \tilde{\vect u}_0^e$, see Figure~\ref{fig:kh:ini}.
+with $r$ being the distance from the unit sphere to $z$-axis. We set $\delta_0 \coloneqq 0.05$ (around $\|z\| > \delta_0$ the velocity field corresponds to a rigid body rotation around the $z$-axis), $c_n \coloneqq 10^{-2}$ (perturbation scaling), and $a_a = 1$, $m_a = 16$, $a_b = 0.1$, $m_b = 20$ (perturbation magnitudes and frequencies). Note that $\tilde{\vect u}$ is tangential by definition, $\tilde{\vect u} \equiv \vect P\,\tilde{\vect u}$. We set the initial condition to be~$\vect u_0 \coloneqq \tilde{\vect u}_0^e$, see Figure~\ref{fig:kh:ini}.
 
 \begin{figure}[H]
 	\par\bigskip
 	\centering
 	\begin{subfigure}{.35\linewidth}
 		\centering
-		\includegraphicsw[.95]{{kh_ini_u_16.cropped}.png}
+		\includegraphicsw[.95]{{kh_ini_u_8.cropped}.png}
 	\end{subfigure}%
 	\begin{subfigure}{.65\linewidth}
 		\centering
-		\includegraphicsw[.95]{{kh_ini_w_16.cropped}.png}
+		\includegraphicsw[.95]{{kh_ini_w_8.cropped}.png}
 	\end{subfigure}%
-	\caption{Left: Initial velocity field~$\vect u_0$~\eqref{kh:ini}. Right: Its surface curl, $\Curl_\Gamma \vect u_0$, for $|z| < 2\,\delta_0$. We see that our choice of~$\vect u_0$ leads to 16 small vortexes around the sphere equator}
+	\caption{Left: Initial velocity field~$\vect u_0$~\eqref{kh:ini}. Right: Its surface curl, $\Curl_\Gamma \vect u_0$, for $|z| < 2\,\delta_0$. We see that our choice of~$\vect u_0$ leads to 8 squeezed vortexes around the sphere equator}
 	\label{fig:kh:ini}		
 \end{figure}
+
+We choose $\nu = 10^{-5}$ and $\gamma = 1$; We solve the problem for~$h \in \{1.04\times 10^{-1}, 5.21\times 10^{-2}, 2.6\times 10^{-2}\}$ using~$\Gamma_{h/m}$ for the integration with~$m \in \{ 2, 4, 8\}$, i.e.~$m \propto h^{-1}$. The time interval is fixed to be~$\lbrack0, T = 20\rbrack$, and we use~$\{ 320, 640, 1280\}$ time frames with BDF2.
 
 Note that for~$\vect u_h \in \vect P_2(\Omega^\Gamma_h)$ we have that its surface curl~\cite{10.1093/imanum/dry062},
 $$
@@ -287,6 +289,37 @@ $$
 	 = \int_\Gamma \vect n\times\vect\phi_j\cdot\nabla_\Gamma\phi_i\diff{s}.
 $$
 We use the last equality in the implementation.
+
+\begin{figure}[H]
+	\centering
+	\includegraphicsw[.7]{kh_kinetic_energy.pdf}
+	\caption{Kinetic energy as a function of time for~$h \in \{1.04\times 10^{-1}, 5.21\times 10^{-2}, 2.6\times 10^{-2}\}$ \AZ{Add plot markers so that curves are distinguishable in gray scale}}
+	\label{fig:kh:kinetic}		
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{.5\linewidth}
+		\centering
+		\includegraphicsw{kh_div.pdf}
+	\end{subfigure}%
+	\begin{subfigure}{.5\linewidth}
+		\centering\footnotesize
+		\begin{tabular}[1.2]{|c|c|c|c|}
+			\hline
+			$h$ & min & max & mean \\
+			\hline
+			$1.04\times 10^{-1}$ & $2.04\times 10^{-2}$ & $6.35\times 10^{-2}$ & $3.91\times 10^{-2}$ \\
+			\hline
+			$5.21\times 10^{-2}$ & $8.91\times 10^{-3}$ & $3.98\times 10^{-2}$ & $2.12\times 10^{-2}$ \\
+			\hline
+			$2.6\times 10^{-2}$  & $2.54\times 10^{-3}$ & $2.18\times 10^{-2}$ & $1.14\times 10^{-2}$ \\
+			\hline
+		\end{tabular}
+	\end{subfigure}%
+	\caption{Left: $\LTwoSpace{}$-norm of the surface divergence of~$\vect u_h$ as a function of time for~$h \in \{1.04\times 10^{-1}, 5.21\times 10^{-2}, 2.6\times 10^{-2}\}$. Right: Minimum, maximum, and mean values over~$t \in \lbrack 0, T = 20\rbrack$ of $\LTwoSpace{}$-norm of the surface divergence of~$\vect u_h$ \AZ{Add plot markers so that curves are distinguishable in gray scale}}
+	\label{fig:kh:div}		
+\end{figure}
 
 \subsection{Normal component equation}
 
