@@ -1,0 +1,92 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      3300,         84]
+NotebookOptionsPosition[      2648,         67]
+NotebookOutlinePosition[      2982,         82]
+CellTagsIndexPosition[      2939,         79]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"SetDirectory", "[", 
+  RowBox[{"NotebookDirectory", "[", "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.764606399663334*^9, 3.764606449762044*^9}},
+ CellLabel->"In[6]:=",ExpressionUUID->"45ea0f00-4a83-44e0-8c69-2492959f2a6e"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"path", "=", "\"\<kh_ini_u_16.png\>\""}], ";"}]], "Input",
+ CellChangeTimes->{{3.764606345371087*^9, 3.7646063555547113`*^9}, 
+   3.7646063956866207`*^9, {3.7646068593204527`*^9, 3.7646069489264727`*^9}, {
+   3.772266869492181*^9, 3.7722668854686317`*^9}, {3.7779356138249817`*^9, 
+   3.777935686577877*^9}, 3.7829428005697927`*^9, {3.782942881288836*^9, 
+   3.7829428817104893`*^9}, {3.783204087036779*^9, 3.783204088020276*^9}},
+ CellLabel->"In[7]:=",ExpressionUUID->"e139301c-19f2-491f-998d-f86d9abeb722"],
+
+Cell[BoxData[
+ RowBox[{"img", "=", 
+  RowBox[{"ImageCrop", "[", 
+   RowBox[{"Import", "[", "path", "]"}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.764606187539674*^9, 3.7646061992456837`*^9}, {
+   3.7646062494508677`*^9, 3.764606250882571*^9}, 3.764606364223567*^9, {
+   3.764606498088059*^9, 3.76460649878371*^9}, {3.764606823537816*^9, 
+   3.764606840192912*^9}},
+ CellLabel->"In[8]:=",ExpressionUUID->"247fb74a-a094-496d-8bba-67478a80cb3f"],
+
+Cell[BoxData[
+ RowBox[{"newPath", "=", 
+  RowBox[{"StringRiffle", "[", 
+   RowBox[{
+    RowBox[{"Insert", "[", 
+     RowBox[{
+      RowBox[{"StringSplit", "[", 
+       RowBox[{"path", ",", "\"\<.\>\""}], "]"}], ",", "\"\<cropped\>\"", ",", 
+      RowBox[{"-", "2"}]}], "]"}], ",", "\"\<.\>\""}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.764606502776517*^9, 3.764606545985099*^9}, {
+  3.76460658178386*^9, 3.764606624264513*^9}, {3.764606752705027*^9, 
+  3.764606774445211*^9}},
+ CellLabel->"In[9]:=",ExpressionUUID->"5b6e3dc9-85cd-4363-9dca-a2ff185c994c"],
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{"newPath", ",", "img"}], "]"}]], "Input",
+ CellChangeTimes->{{3.7646063372476263`*^9, 3.764606340182727*^9}, {
+  3.764606779725575*^9, 3.764606792263859*^9}},
+ CellLabel->"In[10]:=",ExpressionUUID->"f6851b84-e1a4-4f96-a6f0-83484e5911e8"]
+},
+WindowSize->{1853, 1025},
+WindowMargins->{{0, Automatic}, {0, Automatic}},
+FrontEndVersion->"12.0 for Linux x86 (64-bit) (April 8, 2019)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 248, 4, 31, "Input",ExpressionUUID->"45ea0f00-4a83-44e0-8c69-2492959f2a6e"],
+Cell[809, 26, 542, 8, 31, "Input",ExpressionUUID->"e139301c-19f2-491f-998d-f86d9abeb722"],
+Cell[1354, 36, 443, 8, 31, "Input",ExpressionUUID->"247fb74a-a094-496d-8bba-67478a80cb3f"],
+Cell[1800, 46, 555, 12, 31, "Input",ExpressionUUID->"5b6e3dc9-85cd-4363-9dca-a2ff185c994c"],
+Cell[2358, 60, 286, 5, 31, "Input",ExpressionUUID->"f6851b84-e1a4-4f96-a6f0-83484e5911e8"]
+}
+]
+*)
+
