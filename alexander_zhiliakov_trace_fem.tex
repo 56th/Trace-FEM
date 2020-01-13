@@ -272,13 +272,96 @@ with $r$ being the distance from the unit sphere to $z$-axis. We set $\delta_0 \
 	\label{fig:kh:ini}		
 \end{figure}
 
-We choose $\nu = 10^{-5}$ and $\gamma = 1$; We solve the problem for~$h \in \{1.04\times 10^{-1}, 5.21\times 10^{-2}, 2.6\times 10^{-2}\}$ using~$\Gamma_{h/m}$ for the integration with~$m \in \{ 2, 4, 8\}$, i.e.~$m \propto h^{-1}$. The time interval is fixed to be~$\lbrack0, T = 20\rbrack$, and we use~$\{ 320, 640, 1280\}$ time frames with BDF2.
+We choose $\nu = 10^{-5}$ and $\gamma = 1$; We solve the problem for~$h \in \{1.04\times 10^{-1}, 5.21\times 10^{-2}, 2.6\times 10^{-2}\}$ using~$\Gamma_{h/m}$ for the integration with~$m \in \{ 2, 4, 8\}$, i.e.~$m \propto h^{-1}$. The time interval is fixed to be~$\lbrack0, T = 20\rbrack$, and we use~$l = 320, 640, 1280$ time frames with BDF2.
 
-We approximate kinetic energy~$\frac 12 \|\vect u_h\|^2_{\LTwoSpace}$ with
-\begin{equation}\label{ke_fit}
-	E_h(t) \coloneqq \frac 12 \|\vect u_h(\cdot, t_1^h)\|^2_{\LTwoSpace} e^{-\nu_h(t - t_1^h)},
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{.33\linewidth}
+		\includegraphicsw[.9]{{kh_t=0.cropped}.png}
+	\end{subfigure}%
+	\begin{subfigure}{.33\linewidth}
+		\includegraphicsw[.9]{{kh_t=2.5.cropped}.png}
+	\end{subfigure}%
+	\begin{subfigure}{.33\linewidth}
+		\includegraphicsw[.9]{{kh_t=5.cropped}.png}
+	\end{subfigure}%
+	\par\bigskip
+	\begin{subfigure}{.33\linewidth}
+		\includegraphicsw[.9]{{kh_t=6.25.cropped}.png}
+	\end{subfigure}%
+	\begin{subfigure}{.33\linewidth}
+		\includegraphicsw[.9]{{kh_t=10.cropped}.png}
+	\end{subfigure}%
+	\begin{subfigure}{.33\linewidth}
+		\includegraphicsw[.9]{{kh_t=12.5.cropped}.png}
+	\end{subfigure}%
+	\caption{Surface curl of~$\vect u_h$ for $t \in \{ 0, 2.5, 5, 6.25, 10, 12.5 \}$}
+	\label{fig:kh:curl}		
+\end{figure}
+
+Testing~\eqref{split:tang} with $\vect v = \vect u$ ($u_N = 0$, $\vect f_T = \vect 0$, $g = 0$) we get
+\begin{equation}
+	\frac{\diff{E(t)}}{\diff{t}} = -\nu\,\|E_s(\vect u_T(\cdot, t))\|^2_{\LTwoSpace} \le -2\,C_K^{-2}(\Gamma)\,\nu\,E(t)
 \end{equation}
-where~$t_1^h$ is the first time step corresponding to mesh size~$h$ and $\nu_h \coloneqq C\,(\nu_h^\text{num} + \nu)$. 
+with $E(t) \coloneqq \frac 12 \|\vect u(\cdot, t)_T\|^2_{\LTwoSpace} \le E(0)\,e^{-2\,C_K^{-2}(\Gamma)\,\nu\,t}$ and $C_K(\Gamma)$ being Poincar\'{e} constant, $$\|\vect u_T\|_{\LTwoSpace} \le C_K(\Gamma)\,\|E_s(\vect u_T)\|_{\LTwoSpace}.$$
+We wish to estimate the dissipation of~$E_h(t) \coloneqq \frac 12 \|\vect u_h\|^2_{\LTwoSpace}$ using its upper bound
+\begin{equation}\label{ke_fit}
+	E_h^\text{upper}(t) \coloneqq \frac 12 \|\vect u_h(\cdot, t_1^h)\|^2_{\LTwoSpace} e^{-\nu_h(t - t_1^h)},
+\end{equation}
+where~$t_1^h$ is the first time step corresponding to mesh size~$h$. We compute~$\nu_h$ in~\eqref{ke_fit} via performing the exponential function fitting for values~$E_h(t_1^h), E_h(t_2^h), \dots, E_h(t_l^h)$. The results are reported in Figure~\ref{fig:kh:kinetic}. \AZ{I am not sure if it is a big deal, but the exponential fitting using~\eqref{ke_fit} is not an upper bound, cf. e.g. blue curves in Figure~\ref{fig:kh:kinetic}. Maybe this thing shall be rephrased.}
+
+Note that the structure of~$\nu_h$ is
+\begin{equation}\label{num_visc}
+	\nu_h = C\,(\nu_h^\text{num} + \nu),
+\end{equation}
+where $C = 2\,C_K^{-2}(\Gamma)$ and~$\nu_h^\text{num}$ represents so-called numerical viscosity (or numerical diffusion) resulting from the discretization scheme. We would like to estimate how~$\nu_h^\text{num}$ behaves. Thus we need to get an estimate for~$C_K^{-2}(\Gamma) \approx \lambda^\star$, where~$\lambda^\star$ is the smallest nonzero generalized eigenvalue of
+\begin{equation}\label{kh_eig}
+	\begin{pmatrix}
+		\vect A_K & \vect B^T \\
+		\vect B\phantom{_K} & \vect C_n
+	\end{pmatrix}
+	\begin{pmatrix} \vect x \\ \vect y \end{pmatrix} =
+	\lambda
+	\begin{pmatrix}
+		\vect M_u & \\
+		& \epsilon\,\vect I
+	\end{pmatrix}
+	\begin{pmatrix} \vect x \\ \vect y \end{pmatrix}
+\end{equation}
+with~$\vect A_K$ being the sum of velocity diffusion, normal penalty, and volume stabilization matrices. We had to introduce a perturbation parameter~$0 < \epsilon \ll 1$ because the majority of generalized eigenvalue solvers require right-hand-side matrix to be Hermitian positive definite.
+
+%\AZ{It is a rough sketch and I am not sure if it is correct. However, I want to get an idea of what is going on. 
+%	\begin{itemize}
+%		\item The logic is that we want to compute the minimum nonzero generalized eigenvalue~$\lambda_2$ of~$\vect A_\text{stiffness}$, and then we have that 
+%		$C_K(\Gamma) \approx \lambda_2^{-\frac 12}$, right?
+%		\item Is it true then that $C$ in the definition of~$\nu_h \coloneqq C\,(\nu_h^\text{num} + \nu)$ below is $2\,C_K^{-2}(\Gamma) \approx 2\,\lambda_2$?
+%		\item What about our small cuts in~$\vect A_\text{stiffness}\,\vect x = \lambda\,\vect M\,\vect x$?
+%	\end{itemize}
+%}
+
+\begin{table}[H]
+	\centering\footnotesize
+	\caption{Five smallest eigenvalues of~\eqref{kh_eig}. The first eigenvalue~$\lambda_1$ corresponds to a constant pressure mode, eigenvalues~$\lambda_2$, $\lambda_3$, and $\lambda_4$ correspond to 3 Killing vector fields on the sphere, and $\lambda_5 = \lambda_\star$. The results are reported for~$\epsilon_1 = 10^{-6}$ and $\epsilon_2 = 10^{-7}$} 
+	\label{tab:kh:eig_full}
+	\begin{tabular}[1.2]{|c|c|c|c|c|c|c|c|c|}
+		\hline
+		$h$ & $n + m$ & $\epsilon$ & $\lambda_1(\epsilon)$ & $\lambda_2(\epsilon)$ & $\lambda_3(\epsilon)$ & $\lambda_4(\epsilon)$ & $\lambda_5(\epsilon)$ & $|\lambda_5(10^{-6}) - \lambda_5(10^{-7})|$\\ 
+		\hline
+		\tabinput{subspace_eigs_full_table.tex}
+	\end{tabular}
+\end{table} 
+
+\begin{table}[H]
+	\centering
+	\caption{Five smallest eigenvalues of~\eqref{kh_eig}. The first eigenvalue~$\lambda_1$ corresponds to a constant pressure mode, eigenvalues~$\lambda_2$, $\lambda_3$, and $\lambda_4$ correspond to 3 Killing vector fields on the sphere, and $\lambda_5 = \lambda_\star$. The results are reported for~$\epsilon = 10^{-7}$ (we verified that 8 significant digits of~$\lambda_5$ stay the same for~$\epsilon = 10^{-6}$)} 
+	\label{tab:kh:eig}
+	\begin{tabular}[1.2]{|c|c|c|c|c|c|c|}
+		\hline
+		$h$ & $n + m$ & $\lambda_1$ & $\lambda_2$ & $\lambda_3$ & $\lambda_4$ & $\lambda_5$ \\ 
+		\hline
+		\tabinput{subspace_eigs_table.tex}
+	\end{tabular}
+\end{table}
 
 \begin{figure}[H]
 	\centering
@@ -342,7 +425,7 @@ $$
 	%= -\int_\Gamma \vect\phi_j\times\vect n\cdot\nabla_\Gamma\phi_i\diff{s} 
 	= \int_\Gamma \vect n\times\vect\phi_j\cdot\nabla_\Gamma\phi_i\diff{s}.
 $$
-We use the last equality in the implementation.
+We use the last equality in the implementation. 
 
 \subsection{Normal component equation}
 
