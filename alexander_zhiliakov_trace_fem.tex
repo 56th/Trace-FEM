@@ -72,11 +72,16 @@
 \newcommand{\sphere}{{\Gamma_{\text{sph}}}}
 \newcommand{\tor}{{\Gamma_{\text{tor}}}}
 
+% spaces
 \newcommand{\HOne}{{H^1}}
 \newcommand{\LTwo}{{L^2}}
 \newcommand{\LTwoSpace}[1][\Gamma]{{L^2\left({#1}\right)}}
 \newcommand{\LInfSpace}[1][\Gamma]{{L^\infty\left({#1}\right)}}
 \newcommand{\HOneSpace}[1][\Gamma]{{H^1\left({#1}\right)}}
+
+% units
+\newcommand{\unitLength}{{\mathcal L}}
+\newcommand{\unitTime}{{\mathcal T}}
 
 \newcommand{\AZ}[1]{{\color{red}\textbf{AZ}:~#1}}
 
@@ -96,7 +101,7 @@
 % https://tex.stackexchange.com/questions/9425/how-to-fix-footnote-position-at-the-bottom-of-the-page
 \usepackage[bottom]{footmisc}
 
-\title{Trace finite element method for the surface (Navier--)Stokes problem}
+\title{Trace finite element method for the surface partial differential equations}
 \author{
 	Alexander Zhiliakov\thanks{Department of Mathematics, University of Houston, Houston, Texas 77204 (alex@math.uh.edu).}
 }
@@ -113,66 +118,113 @@
 
 \section{Cahn--Hilliard problem on the evolving surface}
 
+\subsection{Continuous problem}
+
+Let~$\vect x \coloneqq (x_1, x_2, x_3)^T = (x, y, z)^T \in \mathbb R^3$ be a spatial variable and $t > 0$ be a time variable. We use~$\unitLength$ and $\unitTime$ to represent length and time units, respectively, i.e. $\lbrack x_i \rbrack = \unitLength$ and $\lbrack t \rbrack = \unitTime$.
+
+We consider the surface Cahn--Hilliard problem,
+\begin{equation}\label{surfaceCH}
+	\frac{\partial c}{\partial t} = \nabla_\Gamma\cdot\left(M_c\,\nabla_\Gamma\left(\mu_c - \epsilon^2\,\Delta_\Gamma c\right)\right), \quad c(\vect x, 0) = c_0(\vect x),
+\end{equation}
+posed on a (for now) stationary surface~$\Gamma$. We seek for the scalar field~$c = c(\vect x, t)$ that represents dimensionless concentration with $c = 0$ corresponding to the first phase and $c = 1$ to the second, $c \in \lbrack 0, 1 \rbrack$; initial concentration is given by $c_0$.
+
+Constant~$\epsilon > 0$ represents the thickness of diffuse interface between the phases, $\lbrack \epsilon \rbrack = \unitLength$. For the mobility function~$M_c$ we choose so-called degenerate mobility
+\begin{equation}\label{mobility}
+	M_c \coloneqq D\,c\,(1-c)
+\end{equation}
+with some diffusivity constant~$D > 0$, $\lbrack D \rbrack = \unitLength^2\,\unitTime^{-1}$; note that $M_c = 0$ for $c = 0$ or 1, i.e. pure phases have no mobility and the diffusion process is ultimately restricted to the diffuse interface. 
+
+For the dimensionless chemical potential function~$\mu_c$ we choose so-called Ginzburg--Landau double-well potential model
+\begin{equation}\label{chemPotential}
+	\mu_c \coloneqq f_0'(c) \quad \text{with} \quad f_0(c) \coloneqq \frac{\xi}{4}\,c^2\,(1 - c)^2,
+\end{equation}
+where the constant~$\xi > 0$ controls the local maximum value~$f_0(\frac 12)$ (or the steepness of its slope and hence the shape of~$\mu_c$).
+
 \subsection{Numerical examples}
 
-We solve the surface C--H problem for the mesh level 6 and $\epsilon = 10^{-2}$.
+\subsubsection{Perimeter estimation}
+
+\AZ{I will add some results on how we got~$c_p$ (see below) for the perimeter estimate sometime soon.}
+
+\subsubsection{Quantitative and qualitative comparison with laboratory experiments}
+
+We fix~$\Gamma = \sphere(1)$ to be the unit sphere to mimic the shape vesicles and set~$\xi = D = 1$ in~\eqref{mobility}--\eqref{chemPotential}. Following~\cite{yushutin2019computational}, we use mesh level $\ell = 6$ ($h = 2.6 \times 10^{-2}$) and $\epsilon = 10^{-2}$ with the time step size $\Delta t = 10^{-2}$ for~$t \le 10^{-2}$ and $\Delta t = 1$ for $t > 10^{-2}$. \AZ{Note: our software DROPS scales~\eqref{surfaceCH} s.t. the ``natural'' time variable for which equation is solved becomes $\tilde{t} = \epsilon\,t$, and thus we feed smaller time step size $\epsilon\,\Delta t$ to the code. It is important to know to get (what we think is) reasonable accuracy (at least before I add the adaptive time stepping), but as I will clarify below it does not really matter whether I use~$t$ or~$\tilde{t}$ for plotting. If you are still curious, I use~$\tilde{t}$ (DROPS naturally outputs~$\tilde{t}$) and shamelessly call the axis~$t$.}
+
+We aim to compare our numerical results with DOPC\,:\,DPPC\,:\,Cholesterol ratios 3\,:\,1\,:\,1 and 26.(6)\,:53.(3)\,:\,20 (20\% for cholesterol and 80\% for DOPC and DPPC mixed as 2\,:\,1). It is known from the literature [\AZ{I use what Yifei has in the excel}] that these mixtures correspond to area fractions occupied by rafts~$c_\text{raft} = 10\%$ and~$c_\text{raft} = 16\%$, respectively. \AZ{We need to comment on temperature dependence of~$c_\text{raft}$.} Thus we pick our initial condition as a realization of random variable~$c_\text{rand} \sim \text{Uniform}(c_\text{raft} - N c_\text{raft}, c_\text{raft} + N c_\text{raft})$, i.e.
+\begin{equation}\label{raftIC}
+	c_0(\vect x) \coloneqq c_\text{rand}(\vect x).
+\end{equation}
+The constant~$N > 0$ controls the noise. Note that the values of~$c_\text{raft}$ that we are interested in are located to the left of local extreme points~$\frac{\left(3 \pm \sqrt{3}\right)}{6}$ of~$\mu_c$ defined~\eqref{chemPotential}, and thus we need to introduce enough noise (and hence energy) in~\eqref{raftIC} to trigger phase separation. We choose~$N$ s.t. the maximum value of~$c_0$ is close to unity; our numerical experiments showed that~$N \le 55\%$ was not enough, and~$c_h$ converged to~$c_h = \text{const} = c_\text{raft}$. \AZ{We need to comment somehow on negative values of~$c_0$ and~$M_c$ in~\eqref{mobility}.} 
+Note that~\eqref{raftIC} ensures the desired raft area fraction
+\begin{equation}\label{raftFracDiscrete}
+	c_\text{raft}^h(t) \coloneqq \frac{\int_{\Gamma_h} c_h(\cdot, t) \diff{s}}{\int_{\Gamma_h} 1 \diff{s}} \simeq c_\text{raft}
+\end{equation} 
+for $t \ge 0$.
+
+Let~$R$ be the radius of a physical vesicle~$\sphere(R)$. Since we have no control over the vesicle size during the experiment but still want our collected data to be consistent, we normalize our spatial variable as~$\tilde{\vect x} \coloneqq \vect x\,R^{-1}$ so that all vesicles are mapped to the unit ones. Introducing~$\tilde t \coloneqq t\,R^{-2}$, one rewrites~\eqref{surfaceCH} in terms of these new variables as
+\begin{equation}\label{surfaceCH:rescaled}
+	\frac{\partial c}{\partial\tilde t} = \tilde\nabla_\Gamma\cdot\left(M_c\,\tilde\nabla_\Gamma\left(\mu_c - R^{-2}\epsilon^2\,\tilde\Delta_\Gamma c\right)\right), \quad \tilde{\vect x} \in \sphere(1).
+\end{equation}        
+Assuming that~$\epsilon \ll 1$, \eqref{surfaceCH} and \eqref{surfaceCH:rescaled} shall give comparable solutions. Note that, however, even if our choice of mobility and chemical potential functions~\eqref{mobility}--\eqref{chemPotential} do model real physics well, we still do not know appropriate values for~$D$ and~$\xi$, and hence the time scale of our numerical solution may be different from the one in~\eqref{surfaceCH:rescaled}. \AZ{...and thus I will rescale my~$t$ in the plots so that it matches Yifei's data.}
+
+\AZ{Yifei, please rescale your data according to what is stated above: perimeter gets divided by a vesicle radius, and the time gets divided by the radius squared. With this, all the vesicles shall show somewhat similar behavior no matter what their size is. If there are outliers, just get rid of them.~\includegraphics[width=12px]{clown.png}}
+
+Some statistics of the numerical experiment for~$c_\text{raft} = 16\%$ are presented in Figure~\ref{fig:ch:perimeter}. For this simulation we have~$\|c_\text{raft}^h - c_\text{raft}\|_\infty = 0.59\%\,c_\text{raft}$. Note that the perimeter estimate curve resembles ``step'' function with each step corresponding to reduction of number of rafts (cf. left and right panels). Snapshots of~$c_h$ are shown in Figure~\ref{fig:ch:soln}. \AZ{I will add the results for~$c_\text{raft} = 10\%$, but I want to discuss it with Prof. Olshanskii first; it looks like we need to rerun them with a smaller, preferably adaptive $\Delta t$.}
 
 \begin{figure}[H]
 	\centering
-	\begin{subfigure}{.5\linewidth}
+	\begin{subfigure}{.6\linewidth}
 		\centering
-		\includegraphicsw{ch6_perimeter.pdf}
+		\includegraphicsw{{ch6_0.16_perimeter}.pdf}
 	\end{subfigure}%
-	\begin{subfigure}{.5\linewidth}
+	\begin{subfigure}{.4\linewidth}
 		\centering\small
 		\begin{tabular}[1.2]{|c|c|c|}
 			\hline
-			$t$ & $\epsilon\,\|\nabla_\Gamma\,c_h\|^2_{\LTwoSpace}$ & \# of rafts \\
+			$t$ & $c_p\,\epsilon\,\|\nabla_\Gamma\,c_h\|^2_{\LTwoSpace}$ & \# of rafts \\
 			\hline
-			1 & 3.47 & 25 \\
+			15 & 11.49 & 7 \\
 			\hline
-			2 & 3.01 & 21 \\
+			30 & 10.39 & 6 \\
 			\hline
-			3 & 2.59 & 16 \\
+			35 & 9.59 & 5 \\
 			\hline
-			4 & 2.04 & 9 \\
+			50 & 8.59 & 4 \\
 			\hline
-			5 & 1.81 & 8 \\
-			\hline
-			6 & 1.61 & 6 \\
-			\hline
-			7 & 1.52 & 5 \\
-			\hline
-			8 & 1.48 & 5 \\
-			\hline
-			9 & 1.43 & 5 \\
-			\hline
-			10 & 1.44 & 4 \\
+			100 & 7.53 & 3 \\
 			\hline
 		\end{tabular}
 	\end{subfigure}%
-	\caption{Left: Diffuse interface perimeter estimate~$\epsilon\,\|\nabla_\Gamma\,c_h\|^2_{\LTwoSpace}$ as a function of time, $t \in \lbrack 0.01, 10 \rbrack$, for 30\%\::\:70\% mixture ($0.300364 \le \frac{\int_\Gamma c_h \diff{s}}{\int_\Gamma \diff{s}} \le 0.30037$). Right: Perimeter values and number of rafts}
+	\caption{Left: Diffuse interface perimeter estimate~$c_p\,\epsilon\,\|\nabla_\Gamma\,c_h\|^2_{\LTwoSpace}$ as a function of time for initial condition~\eqref{raftIC} with $c_\text{raft} = 16\%$. Right: Perimeter values and number of rafts for some values of~$t$}
 	\label{fig:ch:perimeter}		
 \end{figure}
 
 \begin{figure}[H]
 	\centering
 	\begin{subfigure}{.33\linewidth}
-		\includegraphicsw[.9]{{ch6_0.3_t=1.cropped}.png}
+		\includegraphicsw[.9]{{ch.0000.cropped}.png}
 	\end{subfigure}%
 	\begin{subfigure}{.33\linewidth}
-		\includegraphicsw[.9]{{ch6_0.3_t=5.cropped}.png}
+		\includegraphicsw[.9]{{ch.0016.cropped}.png}
 	\end{subfigure}%
 	\begin{subfigure}{.33\linewidth}
-		\includegraphicsw[.9]{{ch6_0.3_t=10.cropped}.png}
+		\includegraphicsw[.9]{{ch.0031.cropped}.png}
 	\end{subfigure}%
-	\caption{Concentration~$c_h$ for $t \in \{ 1, 5, 10 \}$}
+	\par\bigskip
+	\begin{subfigure}{.33\linewidth}
+	\includegraphicsw[.9]{{ch.0036.cropped}.png}
+	\end{subfigure}%
+	\begin{subfigure}{.33\linewidth}
+		\includegraphicsw[.9]{{ch.0052.cropped}.png}
+	\end{subfigure}%
+	\begin{subfigure}{.33\linewidth}
+		\includegraphicsw[.9]{{ch.0101.cropped}.png}
+	\end{subfigure}%
+	\caption{Snapshots of concentration~$c_h$ for $t \in \{ 0, 15, 30, 35, 50, 10 \}$, cf~Figure~\ref{fig:ch:perimeter} (right panel)}
 	\label{fig:ch:soln}		
 \end{figure}
 
 \clearpage
-
-\subsection{Continuous problem and operator splitting}
 
 \section{Navier--Stokes problem on the evolving surface}
 
@@ -2219,6 +2271,8 @@ Note: From Table~\ref{tab:vtk:ascii} we see that the new implementation produces
 %auto preL2err       = sqrt(dot(pSolMinusP, Schur.Data * pSolMinusP));
 %// ...
 %\end{lstlisting}
+
+\clearpage
 
 \bibliographystyle{plain}
 \bibliography{bibl}
