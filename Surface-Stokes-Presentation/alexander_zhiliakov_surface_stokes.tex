@@ -1,0 +1,670 @@
+\documentclass[svgnames]{beamer} % for xcolor https://latex.org/forum/viewtopic.php?t=2445 
+\mode<presentation>
+{
+\usetheme{Warsaw}
+\setbeamertemplate{page number in head/foot}[totalframenumber]
+%\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{headline}{}
+\setbeamercovered{transparent}
+% or whatever (possibly just delete it)
+}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+
+\title[Trace FEM]{Unfitted finite element methods for fluid flows on surfaces}
+\institute[UH] {
+	\includegraphicsw[.3]{logo_uh.png}
+}
+\date[October 17, 2020]{SIAM CSE 2021, March 1, 2021}
+
+% bold for everything
+\usepackage{bm}
+% lowercase mathcal font
+\usepackage{dutchcal}
+\hypersetup{
+	colorlinks,
+	allcolors=.,
+	urlcolor=blue,
+	filecolor=blue
+}
+% braces for subeqns and boxes
+\usepackage{empheq}
+% http://mirror.hmc.edu/ctan/macros/latex/contrib/mathtools/empheq.pdf
+\newcommand*\widefbox[1]{\fbox{\hspace{1em}#1\hspace{1em}}}
+% hl
+\usepackage{soul}
+\makeatletter
+\let\HL\hl
+\renewcommand\hl{%
+	\let\set@color\beamerorig@set@color
+	\let\reset@color\beamerorig@reset@color
+	\HL}
+\makeatother
+% sub figures / grids of pictures
+\usepackage{overpic}
+\usepackage{subcaption} 
+\graphicspath{{./img/}} % includegraphics path
+\newcommand{\includegraphicsw}[2][1.]{\includegraphics[width=#1\linewidth]{#2}}
+\newcommand{\svginput}[1]{\input{img/#1}} % pdf_tex path
+\newcommand{\svginputw}[2][1.]{\def\svgwidth{#1\linewidth}\input{./img/#2}} % pdf_tex path
+% tables
+\let\oldtabular\tabular
+\renewcommand{\tabular}[1][1.5]{\def\arraystretch{#1}\oldtabular}
+\usepackage{hhline}
+\usepackage{multirow}
+% \coloneqq
+\usepackage{mathtools}
+% math commands for convinience
+\DeclareMathOperator{\argmin}{arg\,min}
+% bold vectors
+\newcommand{\vect}[1]{\boldsymbol{\mathbf{#1}}}
+
+% differentials
+\newcommand*\diff{\mathop{}\!\mathrm{d}}
+\newcommand*\Diff[1]{\mathop{}\!\mathrm{d^#1}}
+
+\let\pa\partial
+\let\ep\varepsilon
+\newcommand{\R}{\mathbb R}
+\newcommand{\bA}{\mathbf A}
+\newcommand{\bB}{\mathbf B}
+\newcommand{\bC}{\mathbf C}
+\newcommand{\bD}{\mathbf D}
+\newcommand{\bE}{\mathbf E}
+\newcommand{\bH}{\mathbf H}
+\newcommand{\bI}{\mathbf I}
+\newcommand{\bJ}{\mathbf J}
+\newcommand{\bP}{\mathbf P}
+\newcommand{\bK}{\mathbf K}
+\newcommand{\bM}{\mathbf M}
+\newcommand{\bQ}{\mathbf Q}
+\newcommand{\bS}{\mathbf S}
+\newcommand{\cV}{\mathcal{V}_{\rm div}}
+\newcommand{\bV}{\mathbf V}
+\newcommand{\ga}{\gamma}
+\newcommand{\ba}{\mathbf a}
+\newcommand{\bb}{\mathbf b}
+\newcommand{\bg}{\mathbf g}
+\newcommand{\blf}{\mathbf f}
+\newcommand{\bn}{\mathbf n}
+\newcommand{\be}{\mathbf e}
+\newcommand{\bp}{\mathbf p}
+\newcommand{\br}{\mathbf r}
+\newcommand{\bs}{\mathbf s}
+\newcommand{\bt}{\mathbf t}
+\newcommand{\bT}{\mathbf T}
+\newcommand{\bu}{\mathbf u}
+\newcommand{\bU}{\mathbf U}
+\newcommand{\bv}{\mathbf v}
+\newcommand{\bw}{\mathbf w}
+\newcommand{\bW}{\mathbf W}
+\newcommand{\bx}{\mathbf x}
+\newcommand{\by}{\mathbf y}
+\newcommand{\bz}{\mathbf z}
+\newcommand{\bbf}{\mathbf f}
+\newcommand{\A}{\mathcal A}
+\newcommand{\F}{\mathcal F}
+\newcommand{\G}{\mathcal G}
+\newcommand{\I}{\mathcal I}
+\newcommand{\K}{\mathcal K}
+\newcommand{\M}{\mathcal M}
+\newcommand{\N}{\mathcal N}
+\newcommand{\Q}{\mathcal Q}
+\newcommand{\J}{\mathcal J}
+\newcommand{\T}{\mathcal T}
+\newcommand{\V}{\mathcal V}
+\newcommand{\Div}{\mbox{div}}
+\newcommand{\divG}{{\mathop{\,\rm div}}_{\Gamma}}
+\newcommand{\gradG}{\nabla_{\Gamma}}
+\newcommand{\nablaG}{\nabla_{\Gamma}}
+\newcommand{\cH}{\mathcal H}
+\newcommand{\cD}{\mathcal D}
+\newcommand{\cF}{\mathcal F}
+\newcommand{\cE}{\mathcal E}
+\newcommand{\cO}{\mathcal O}
+\newcommand{\cT}{\mathcal T}
+\newcommand{\cP}{\mathcal P}
+\newcommand{\cR}{\mathcal R}
+\newcommand{\cS}{\mathcal S}
+\newcommand{\cL}{\mathcal L}
+\newcommand{\rr}{\mathbb{R}}
+\newcommand{\cc}{\mathbb{C}}
+\newcommand{\kk}{\mathbb{K}}
+\newcommand{\nn}{\mathbb{N}}
+\newcommand{\dd}{\,d}
+\newcommand{\zz}{\mathbb{Z}}
+\newcommand{\Gs}{\mathcal{S}} %{\Gamma_\ast}
+\newcommand{\OGamma}{\Omega^\Gamma_h}
+\newcommand{\tA}{\widetilde{\mathcal A}}
+%\newcommand{\Gsn}{{\Gamma_\ast^n}}
+%\newcommand{\normal}{n}
+\newcommand{\wn}{w_{\!\perp}}
+\newcommand{\ddp}{\partial}
+\newcommand{\ati}{\tilde{a}}
+\newcommand{\wtang}{\bw_\parallel}
+%\newcommand{\grad}{\nabla}
+\newcommand{\jumpleft}{[\![}
+\newcommand{\jumpright}{]\!]}
+\newcommand{\averageleft}{\{\!\!\{}
+\newcommand{\averageright}{\}\!\!\}}
+\newcommand{\divergence}{\textrm{div}ARJankuhnonvectroLaplace\ \!}
+\renewcommand{\div}{\mbox{\rm div}\ \!}
+\newcommand{\HSobolev}{H}
+\newcommand{\Lzwei}{L^2}
+\newcommand{\Rn}{\mathbb{R}^n}
+\newcommand{\Rm}{\mathbb{R}^m}
+\newcommand{\tr}{{\rm tr}}
+%\newcommand{\alert}[1]{{\bf #1}}
+%\DeclareGraphicsExtensions{.pdf,.eps,.ps,.eps.gz,.ps.gz,.eps.Y}
+\def\Fh{\mathcal{F}_h}
+\def\Eh{\mathcal{E}_h}
+\newcommand{\la}{\left\langle}
+\newcommand{\ra}{\right\rangle}
+\newcommand{\Yo}{\overset{\circ}{Y}}
+\newcommand{\deriv}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\bsigma}{\boldsymbol{\sigma}}
+\newcommand{\DG}{D_\Gamma}
+\newcommand{\DGh}{D_{\Gamma_h}}
+\newcommand{\bxi}{\mbox{\boldmath$\xi$\unboldmath}}
+\def\cl {\nonumber \\}
+\def\el {\nonumber }
+\newcommand{\lPlane}{L_{\vect x_0}}
+\newcommand{\sphere}{{\Gamma_{\text{sph}}}}
+\newcommand{\tor}{{\Gamma_{\text{tor}}}}
+% for norms
+\newcommand{\HOne}{{H^1}}
+\newcommand{\LTwo}{{L^2}}
+\newcommand{\LTwoSpace}[1][\Gamma]{{L^2\left({#1}\right)}}
+\newcommand{\HOneSpace}[1][\Gamma]{{H^1\left({#1}\right)}}
+
+\begin{document}
+
+	\author[Alex Zhiliakov]{%
+		\small\begin{tabular}[1.]{cl}
+			\textbf{Alexander Zhiliakov} & \qquad Collaborators: \\
+			\href{mailto:alex@math.uh.edu}{alex@math.uh.edu} & \qquad Maxim Olshanskii (UH) \\
+			& \qquad Arnold Reusken (RWTH Aachen) \\
+			& \qquad Thomas Jankuhn (RWTH Aachen)
+		\end{tabular}
+		\vskip -1mm
+	}
+
+	\begin{frame}
+		\titlepage
+	\end{frame}
+
+	\begin{frame}{Overview}
+		\tableofcontents
+	\end{frame}
+
+	\section{Continuous formulation}
+	
+	\begin{frame}{Continuous formulation}
+		\vskip -.5cm
+		\begin{align*}
+			-2\,\bP\,\div_\Gamma (E_s(\bu)) + \alpha\,\bu + \nabla_\Gamma p &=  \blf \: \text{on}~\Gamma, \quad 	E_s(\bu) \coloneqq \frac 12\left(\nabla_\Gamma\bu + \nabla^T_\Gamma\bu \right), \\
+			\div_\Gamma \bu & = g \:\text{on}~\Gamma,\quad
+			{\bu\cdot\bn}=0 \:\text{on}~\Gamma
+		\end{align*}
+		\vskip -.2cm
+		\begin{block}{Weak formulation}
+			Find %$(\bv_T,p) \in \bV_T^0 \times L_0^2(\Gamma)$ (for $\alpha=0$) or
+			$(\bu,p) \in \bV_T \times L_0^2(\Gamma)$ such that
+			\vskip -.2cm
+			\begin{equation}\label{cont}
+			\begin{aligned}
+			a(\bu,\bv) +b_T(\bv,p) &=(\blf,\bv), \quad\quad \bv \in \bV_T, \\
+			b_T(\bu,q) & = (-g,q), \quad q \in L^2(\Gamma)
+			\end{aligned}
+			\end{equation}
+		\end{block}
+		\only<1>{%
+			\begin{align*}
+				a(\bu,\bv) &\coloneqq \int_\Gamma (2\,E_s(\bu):E_s(\bv)+\alpha\,\bu\cdot\bv) \diff{s},\\
+				b_T(\bv,p) &\coloneqq -\int_\Gamma p\,\divG \bv_T \diff{s}, \quad \bV_T\coloneqq  \{\, \bv \in H^1(\Gamma)^3\::\: \bv\cdot \bn =0\,\}
+			\end{align*}
+		}%
+		\only<2>{%
+			Problem~\eqref{cont} is well-posed thanks to Korn inequality and inf-sup property~[1]
+			$$
+				\|\bv_T\|_{L^2(\Gamma)}+ \|E_s(\bv_T)\|_{L^2(\Gamma)} \geq c \|\bv_T\|_{1},\quad
+				\sup_{\bv_T\in{\bV_T}}\frac{b_T(\bv_T,p)}{\|\bv_T\|_{1}}  \geq c \|p\|_{L^2(\Gamma)}
+			$$
+			\setul{1pt}{.4pt} % https://tex.stackexchange.com/questions/50637/closer-underline
+			\tiny{
+				\textsuperscript{1}T.~Jankuhn, M.~Olshanskii, A.~Reusken\\
+				$\quad\:\:$\href{https://arxiv.org/abs/1702.02989}{\ul{Incompressible fluid problems on embedded surfaces: Modeling and variational formulations}},\\
+				$\quad\:\:$Interfaces and Free Boundaries 2018
+			}
+		}
+	\end{frame}
+	
+	\section{Discrete formulation}
+	
+	\begin{frame}{Discrete formulation}
+		\begin{block}{Discrete weak formulation}
+			Find $(\bu_h, p_h) \in \bU_h \times Q_h$ such that
+			\vskip -.2cm
+			\begin{equation}\label{discrete_}
+				\begin{aligned}
+				A_h(\bu_h,\bv_h) + b_T(\bv_h,p_h) & =(\blf,\bv_h), &\quad &\bv_h \in \bU_h,\\
+				b_T(\bu_h,q_h)-s_h(p_h,q_h) & = (-g,q_h), &\quad &q_h \in Q_h
+			\end{aligned}
+			\end{equation}
+		\end{block}
+		\begin{figure}
+			\begin{subfigure}{.6\linewidth}
+				\small We include additional terms to enforce \textcolor{Red}{tangentiality} and \textcolor{Green}{algebraic stability}:
+				\begin{align*}
+				A_h(\bu, \bv) & \coloneqq
+				a_h(\bu,\bv) + \textcolor{Red}{\tau \int_{\Gamma_h} u_N\,v_N \diff{s}} \\
+				&+\textcolor{Green}{\rho_u \int_{\Omega_h^{\Gamma}} ([\nabla\bu]\,\bn)\cdot([\nabla\bv]\,\bn) \diff{\vect x}},\\
+				s_h(p,q) &\coloneqq  \textcolor{Green}{\rho_p  \int_{\OGamma} (\bn \cdot \nabla p)  (\bn \cdot\nabla q) \,  \diff{\vect x}},\\
+				\tau &= c_\tau h^{-2},\quad \rho_p= c_p h, \quad \rho_u\in [c_u h,C_u h^{-1}]
+				\end{align*}
+			\end{subfigure}%
+			\begin{subfigure}{.4\linewidth}\centering
+				\begin{overpic}[width=0.9\textwidth]{./img/mesh3.png}
+					\put(-38,80){\scriptsize Bulk mesh $\longrightarrow$}
+					\put(-5,50){\scriptsize $\Gamma_h \longrightarrow$}
+					\put(40,105){\scriptsize $\OGamma$}
+					\put(40,90){$\Big \downarrow$}
+				\end{overpic}
+			\end{subfigure}
+		\end{figure}
+	\end{frame}
+	
+	\subsection{Inf-sup stability}
+
+	\begin{frame}{Well-posedness}
+		\setcounter{equation}{1}		
+		\begin{equation}\label{discrete}
+		\begin{aligned}
+			A_h(\bu_h,\bv_h) + b_T(\bv_h,p_h) & =(\blf,\bv_h), &\quad &\bv_h \in \bU_h,\\
+			b_T(\bu_h,q_h)-s_h(p_h,q_h) & = (-g,q_h), &\quad &q_h \in Q_h
+		\end{aligned}
+		\end{equation}
+		\begin{itemize}
+			\item Forms $b_T(\cdot,\cdot)$ and $s_h(\cdot,\cdot)$ are continuous and
+			the form $A_h(\cdot, \cdot)$ is both coercive and continuous
+			\item If we have
+			%\begin{exampleblock}{}
+			\begin{equation}\label{LBB}
+				\|q\|_h \lesssim \sup_{\bv\in\bU_h}\frac{b_T(\bv,q)}{\|\bv\|_A} +s_h(q,q)^{\frac12}, \quad q \in Q_h, \tag{LBB}
+			\end{equation}
+			%\end{exampleblock}
+			then~\eqref{discrete} is well-posed  in the product norm $(\|\cdot\|_A^2+\|\cdot\|_h^2)^{\frac12}$,
+			\begin{equation*}
+				\|\bv\|_A=A_h(\bv, \bv)^{\frac12},\quad\|q\|_h=\left(\|q\|^2_{L^2(\Gamma)}+s_h(q,q)\right)^\frac12
+			\end{equation*}
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Inf-sup stability proof outline\textsuperscript{2}}		
+		\begin{equation}\label{LBB_}
+			\|q\|_h \lesssim \sup_{\bv\in\bU_h}\frac{b_T(\bv,q)}{\|\bv\|_A} +s_h(q,q)^{\frac12}, \quad q \in Q_h \tag{LBB}
+		\end{equation}
+		\vfill
+		\only<1>{%
+			\begin{block}{Step 1: Verf\"urth's trick}
+				We show that \eqref{LBB_}~$\Leftrightarrow$
+				\begin{equation*}
+					|q|_{1,\,h} \coloneqq \Big(\sum_{T \in \T_h^\Gamma} h_T \|\nabla q\|_{L^2(T)}^2\Big)^{\frac12} \lesssim \sup_{\bv\in\bU_h}\frac{b_T(\bv,q)}{\|\bv\|_A} +s_h(q,q)^{\frac12}
+				\end{equation*}
+			\end{block}
+		}%
+		\only<2>{%
+			\begin{block}{Step 2: Regular elements estimate}
+				For~$\cT^{\Gamma}_{\textnormal{reg}} \coloneqq \{\, T \in \cT_h^\Gamma\::\:|\Gamma_T| \geq c\,h_T^2\,\}$ we have%~\eqref{LBB_}~$\Leftrightarrow$
+				\begin{align*}
+					|q|_{1,\,h}^2 &\lesssim \sum_{T \in \cT^{\Gamma}_{\textnormal{reg}}} h_T \|\nabla q\|_{L^2(T)}^2 +s_h(q,q)\\
+					&=\|q\|_{1,\,\textnormal{reg}}^2 +s_h(q,q)
+					%|q|_{1,\,\textnormal{reg}} \coloneqq \Big(\sum_{T \in \cT^{\Gamma}_{\textnormal{reg}}} h_T \|\nabla q\|_{L^2(T)}^2\Big)^{\frac12} \lesssim \sup_{\bv\in\bU_h}\frac{b_T(\bv,q)}{\|\bv\|_A} +s_h(q,q)^{\frac12}
+				\end{align*}
+			\end{block}
+		}%
+		\only<3>{%
+			\begin{block}{Step 3}
+				Estimating
+				\begin{align*}
+					|q|_{1,\,\textnormal{reg}} &\lesssim \frac{ b_T(\bv,q)}{ |q|_{1,\,\textnormal{reg}}+s_h(q,q)^\frac12} +s_h(q,q)^\frac12, \\
+					 \|\bv\|_A &\lesssim |q|_{1,\,\textnormal{reg}}+s_h(q,q)^\frac12,
+				\end{align*}
+				we get~\eqref{LBB_}
+			\end{block}
+			Higher order case~$\vect P_k$--$P_{k-1}$, $k > 2$, analyzed and proved in~[3]
+		}%
+		\vfill
+		\setul{1pt}{.4pt} % https://tex.stackexchange.com/questions/50637/closer-underline
+		\tiny{
+			\textsuperscript{2}M.~Olshanskii, A.~Reusken, A.~Zhiliakov\\
+			$\:\:$\href{https://arxiv.org/abs/1909.02990}{\ul{Inf-sup stability of the trace $\vect P_2$--$P_1$ Taylor--Hood elements for surface PDEs}}, Mathematics of Computation 2020
+		}
+		\only<3>{\tiny{
+			\textsuperscript{3}T.~Jankuhn, M.~Olshanskii, A.~Reusken, A.~Zhiliakov\\
+			$\:\:$\href{https://arxiv.org/abs/2003.06972}{\ul{Error analysis of higher order trace finite element methods for the surface Stokes equation}},\\
+			$\:\:$Journal of Numerical Mathematics 2020
+		}}
+	\end{frame}
+	
+	\subsection{Error bounds}
+	
+	\begin{frame}{Error estimates}
+		Employing inf-sup stability, coercivity of $A_h(\cdot, \cdot)$, Galerkin orthogonality, and interpolation estimates for $\vect P_2$ and $P_1$ trace finite elements~[4], we have
+		\begin{align*}
+		\|\bu_T^\ast  -(\bu_h)_T\|_{H^1(\Gamma)}  + \|p^\ast  - p_h \|_{L^2(\Gamma)}  &\lesssim h^2 (\|\bu_T^\ast\|_{H^3(\Gamma)} +\|p^\ast\|_{H^2(\Gamma)}), \\
+		\|\bu_h\cdot\bn \|_{L^2(\Gamma)}  &\lesssim h^3 (\|\bu_T^\ast\|_{H^3(\Gamma)} +\|p^\ast\|_{H^2(\Gamma)})
+		\end{align*}
+		Duality argument yields the optimal error bound in the surface $L^2$ norm for velocity
+		\begin{equation*}
+		\|\bu_T^\ast  - (\bu_h)_T\|_{L^2(\Gamma)} \lesssim h^{3}(\|\bu_T^\ast\|_{H^3(\Gamma)} +\|p^\ast\|_{H^2(\Gamma)})
+		\end{equation*}
+		\vfill
+		\tiny{
+			\textsuperscript{4}M.~Olshanskii, A.~Quaini, A.~Reusken, V.~Yushutin\\
+			$\:\:$\href{https://arxiv.org/abs/1801.06589}{\ul{A finite element method for the surface Stokes problem}}, SISC 2018
+		}
+	\end{frame}
+	
+	\section{Numerical experiments}
+	
+	\subsection{Inf-sup constant}
+	
+	\begin{frame}{Inf-sup constant: independence of~$h$}
+		Smallest generalized nonzero eigenvalue~$\lambda_2$ of the pressure Schur complement~$\vect S = \vect B\,\vect A^{-1}\,\vect B^{T} + \vect C$ defines optimal constant~$c^2 = \lambda_2$ in~\eqref{LBB}
+		\begin{figure}
+			\begin{subfigure}{.3\linewidth}
+				\includegraphicsw[.9]{{lvl2.cropped}.png}
+				\includegraphicsw[.9]{{tor_lvl3.cropped}.png}
+			\end{subfigure}%
+			\begin{subfigure}{.7\linewidth}\centering
+				%\begin{table}
+					\centering\tiny
+					\begin{tabular}[1.2]{|c|c|c|c|c|}
+						\hline
+						\multirow{2}{*}{$h$} & \multicolumn{2}{c|}{$\vect S_0$ (no stab.)} & \multicolumn{2}{c|}{$\vect S_n$ (normal stab.)} \\
+						\cline{2-5}
+						& $\lambda_2$ & $\lambda_{m}$ & $\lambda_2$ & $\lambda_{m}$ \\
+						\hline
+						$8.33\times	10^{-1}$	&	$2.33\times	10^{-1}$	&	$1.07$	&	$6.3\times	10^{-1}$	&	$1.$	\\ \hline
+						$4.17\times	10^{-1}$	&	$4.72\times	10^{-2}$	&	$6.97\times	10^{-1}$	&	$5.29\times	10^{-1}$	&	$1.$	\\ \hline
+						$2.08\times	10^{-1}$	&	$7.93\times	10^{-2}$	&	$6.7\times	10^{-1}$	&	$5.09\times	10^{-1}$	&	$1.$	\\ \hline
+						$1.04\times	10^{-1}$	&	$3.71\times	10^{-2}$	&	$6.69\times	10^{-1}$	&	$5.03\times	10^{-1}$	&	$1.$	\\ \hline
+						$5.21\times	10^{-2}$	&	$1.81\times	10^{-3}$	&	$6.68\times	10^{-1}$	&	$4.98\times	10^{-1}$	&	$1.$	\\ \hline
+						$2.6\times	10^{-2}$	&	$6.65\times	10^{-4}$	&	$6.65\times	10^{-1}$	&	$4.92\times	10^{-1}$	&	$1.$	\\ \hline
+					\end{tabular}
+					\vskip .5cm
+				%\end{table}
+				%\begin{table}
+					\centering\tiny
+					\begin{tabular}[1.2]{|c|c|c|c|c|}
+						\hline
+						\multirow{2}{*}{$h$} & \multicolumn{2}{c|}{$\vect S_0$} & \multicolumn{2}{c|}{$\vect S_n$} \\
+						\cline{2-5}
+						& $\lambda_2$ & $\lambda_{m}$ & $\lambda_2$ & $\lambda_{m}$ \\
+						\hline
+						$2.08\times	10^{-1}$	&	$2.15\times	10^{-1}$	&	$9.56\times	10^{-1}$	&	$3.12\times	10^{-1}$	&	$1.$	\\ \hline
+						$1.04\times	10^{-1}$	&	$1.59\times	10^{-2}$	&	$7.6\times	10^{-1}$	&	$3.21\times	10^{-1}$	&	$1.$	\\ \hline
+						$5.21\times	10^{-2}$	&	$1.31\times	10^{-3}$	&	$7.48\times	10^{-1}$	&	$3.21\times	10^{-1}$	&	$1.$	\\ \hline
+						$2.6\times	10^{-2}$	&	$1.9\times	10^{-4}$	&	$7.42\times	10^{-1}$	&	$3.2\times	10^{-1}$	&	$1.$	\\ \hline
+					\end{tabular}
+				%\end{table}
+			\end{subfigure}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}{Inf-sup constant: $\Gamma$ and the background mesh}
+		We illustrate that the optimal constant in \eqref{LBB} is  uniformly bounded w.r.t. the position of $\Gamma$ in  the background mesh. We consider shifted surfaces
+		\begin{equation*}
+			\Gamma \mapsto \Gamma + \alpha\,\vect s
+		\end{equation*}
+		with some $\alpha \in \mathbb R$ and $\vect s \in \mathbb R^3$, $\|\vect s\| = 1$
+		\begin{figure}
+			\centering
+			\begin{subfigure}{.4\linewidth}
+				\centering
+				\includegraphicsw[.9]{{shift_0.0.cropped}.png}
+				\caption{$\sphere$}
+			\end{subfigure}%
+			\begin{subfigure}{.4\linewidth}
+				\centering
+				\includegraphicsw[.9]{{shift_0.4.cropped}.png}
+				\caption{$\sphere + \alpha\,\vect s$}
+			\end{subfigure}%
+		\end{figure}
+	\end{frame}
+
+	\begin{frame}{Inf-sup constant: $\Gamma$ and the background mesh}	
+		\begin{table}
+			\centering\only<1>{%
+			Sphere, $\Gamma = \sphere$\vskip .3cm
+			\begin{tabular}[1.2]{|c|c|c|c|c|}
+				\hline
+				\multirow{2}{*}{Surface} & \multicolumn{2}{c|}{$\vect S_0$} & \multicolumn{2}{c|}{$\vect S_n$} \\
+				\cline{2-5}
+				& $\lambda_2$ & $\lambda_{m}$ & $\lambda_2$ & $\lambda_{m}$ \\
+				\hline
+				$\sphere + 0.0\,\vect s$	&	$3.71\times	10^{-2}$	&	$6.69\times	10^{-1}$	&	$5.03\times	10^{-1}$	&	$1.$	\\ \hline
+				$\sphere + 0.1\,\vect s$	&	$1.31\times	10^{-3}$	&	$6.87\times	10^{-1}$	&	$5.03\times	10^{-1}$	&	$1.$	\\ \hline
+				$\sphere + 0.2\,\vect s$	&	$1.25\times	10^{-3}$	&	$6.70\times	10^{-1}$	&	$5.03\times	10^{-1}$	&	$1.$	\\ \hline
+				$\sphere + 0.3\,\vect s$	&	$1.04\times	10^{-2}$	&	$6.72\times	10^{-1}$	&	$5.03\times	10^{-1}$	&	$1.$	\\ \hline
+				$\sphere + 0.4\,\vect s$	&	$5.32\times	10^{-4}$	&	$6.72\times	10^{-1}$	&	$5.03\times	10^{-1}$	&	$1.$	\\ \hline
+			\end{tabular}}\only<2>{%
+			Torus, $\Gamma = \tor$\vskip .3cm
+			\begin{tabular}[1.2]{|c|c|c|c|c|}
+				\hline
+				\multirow{2}{*}{Surface} & \multicolumn{2}{c|}{$\vect S_0$} & \multicolumn{2}{c|}{$\vect S_n$} \\
+				\cline{2-5}
+				& $\lambda_2$ & $\lambda_{m}$ & $\lambda_2$ & $\lambda_{m}$ \\
+				\hline
+				$\tor + 0.00\,\vect s$	&	$1.59\times	10^{-2}$	&	$7.6\times	10^{-1}$	&	$3.21\times	10^{-1}$	&	$1.$	\\ \hline
+				$\tor + 0.05\,\vect s$	&	$9.20\times	10^{-3}$	&	$1.14$	&	$3.21\times	10^{-1}$	&	$1.$	\\ \hline
+				$\tor + 0.10\,\vect s$	&	$3.00\times	10^{-3}$	&	$1.91$	&	$3.19\times	10^{-1}$	&	$1.$	\\ \hline
+				$\tor + 0.15\,\vect s$	&	$8.67\times	10^{-3}$	&	$1.02$	&	$3.21\times	10^{-1}$	&	$1.$	\\ \hline
+				$\tor + 0.20\,\vect s$	&	$6.68\times	10^{-3}$	&	$3.04$	&	$3.21\times	10^{-1}$	&	$1.$	\\ \hline 
+			\end{tabular}}%
+		\end{table}
+	\end{frame}
+	
+	\subsection{Convergence test}
+	
+	\begin{frame}{Convergence test}
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.4\linewidth}
+				\centering
+				\includegraphicsw[.8]{u_soln.png}
+				\caption{$\vect u(\vect x) \coloneqq \vect P\,(-z^2, y, x)^T$}
+			\end{subfigure}%
+			\begin{subfigure}{.4\linewidth}
+				\centering
+				\includegraphicsw[.8]{p_soln.png}
+				\caption{$p(\vect x) \coloneqq x\,y^2 + z$}
+			\end{subfigure}%
+		\end{figure}%
+		\vskip -.25cm
+		\begin{table}\centering\small
+			\begin{tabular}[1.2]{|c||c|c||c|c||c||c|}
+				\hline
+				Level & $\|\vect u - \vect u_h\|_{\HOne}$ & Order & $\|\vect u - \vect u_h\|_{\LTwo}$ & Order & $\|p - p_h\|_{\LTwo}$ & Order \\
+				\hline
+				1	&	$2.2$	&	$\text{}$	&	$6.4\times	10^{-1}$	&	$\text{}$	&	$7.4\times	10^{-1}$	&	$\text{}$	\\ \hline
+				2	&	$3.8\times	10^{-1}$	&	$2.5$	&	$6.1\times	10^{-2}$	&	$3.4$	&	$1.2\times	10^{-1}$	&	$2.6$	\\ \hline
+				3	&	$9.2\times	10^{-2}$	&	$2.1$	&	$5.8\times	10^{-3}$	&	$3.4$	&	$2.5\times	10^{-2}$	&	$2.2$	\\ \hline
+				4	&	$2.2\times	10^{-2}$	&	$2.1$	&	$5.6\times	10^{-4}$	&	$3.4$	&	$6.1\times	10^{-3}$	&	$2.1$	\\ \hline
+				5	&	$5.3\times	10^{-3}$	&	$2.$	&	$5.2\times	10^{-5}$	&	$3.4$	&	$1.6\times	10^{-3}$	&	$1.9$	\\ \hline
+				6	&	$1.3\times	10^{-3}$	&	$2.$	&	$5.2\times	10^{-6}$	&	$3.3$	&	$4.1\times	10^{-4}$	&	$2.$	\\ \hline
+				7	&	$3.4\times	10^{-4}$	&	$2.$	&	$6.\times	10^{-7}$	&	$3.1$	&	$1.\times	10^{-4}$	&	$2.$	\\ \hline
+			\end{tabular}
+		\end{table}
+	\end{frame}
+	
+	\subsection{Kelvin--Helmholtz instability}
+	
+	\begin{frame}{Kelvin--Helmholtz instability (surface NS)}
+		\begin{figure}
+			\small{Mixing layer of incompressible viscous flow at $Re = 10^4$}
+			\begin{subfigure}{.5\linewidth}
+				\centering
+				\href{file:./img/KH.avi}{\includegraphicsw[.7]{kh_ini_u.png}}
+			\end{subfigure}%
+			\begin{subfigure}{.5\linewidth}
+				\includegraphicsw[.9]{kh_kinetic_energy.pdf}
+			\end{subfigure}
+			%\vskip .1cm
+			\begin{subfigure}{.5\linewidth}
+				\centering
+				\includegraphicsw[.7]{KH_clouds_1.jpg}
+			\end{subfigure}%
+			\begin{subfigure}{.5\linewidth}
+				\small{Finest solution loses ${\sim0.5\%}$ of kinetic energy when the flow is dominated by two counter-rotating vortexes; this compares well with results computed with a higher order method in~[5] for planar case}
+			\end{subfigure}
+		\end{figure}
+		\vfill
+		\setul{1pt}{.4pt} % https://tex.stackexchange.com/questions/50637/closer-underline
+		\tiny{
+			\textsuperscript{5}P.~Schroeder, V.~John, P.~Lederer et al.\\
+			$\:\:$\href{https://www.sciencedirect.com/science/article/pii/S0898122118306278}{\ul{On reference solutions and the sensitivity of the 2D Kelvin--Helmholtz instability problem}},\\ $\:\:$Computers \& Mathematics with Applications 2019
+		}
+	\end{frame}
+
+%	
+%	\section{Theoretical background}
+
+%	\begin{frame}{Finite element method workflow \& motivation}
+%		\begin{enumerate}
+%			\item $L\,u = f$ + BCs $\Rightarrow$ Time discretization, linearization and finite element approximation $\Rightarrow$ Linear system~$\vect A\,\vect x = \vect b$ with \textbf{stiffness matrix}~$\vect A \in \mathbb R^{n\times n}$
+%			\item For~$L = -\nabla\cdot(\vect K\,\nabla)$ we have~$\vect A_{ij} = \int \vect K\,\nabla\phi_j\cdot\nabla\phi_i$ with $\phi_i$ being a basis function with a compact support; $\phi_i$ is typically chosen as a piecewise polynomial of degree~$k$.
+%		\end{enumerate}
+%		\begin{figure}
+%			\begin{subfigure}{.5\linewidth}
+%				\centering
+%				\includegraphicsw[.8]{sparse.pdf}
+%				{Nonzero pattern of~$\vect A$}
+%			\end{subfigure}%
+%			\begin{subfigure}{.5\linewidth}
+%				$\vect A$ is \textbf{sparse}, \\i.e. it requires~$O(n)$ memory resources and $O(n)$ FLOPs when multiplying the matrix by a vector. 
+%			\end{subfigure}
+%		\end{figure}
+%	\end{frame}
+%
+%	\begin{frame}{Stiffness matrix assembly}
+%		\begin{itemize}
+%		\item For large complex problems, especially in 3D, it is typical to use an iterative solver with a suitable preconditioner to solve the system
+%		\item The core operation is~$\vect x \mapsto \vect A\,\vect x \eqqcolon \vect z$
+%		\item Hence it is crucially important that the sparse matrix-vector multiplication is implemented efficiently.
+%		\end{itemize}
+%		\begin{figure}
+%			\begin{subfigure}{.45\linewidth}
+%				\centering
+%				\includegraphicsw[.8]{mesh.png}
+%				Domain mesh
+%			\end{subfigure}%
+%			\begin{subfigure}{.55\linewidth}
+%				$\vect A$ is assembled from small cell matrices~$\vect A_\text{cell} \in \mathbb R^{k^{\text{dim}}\times k^{\text{dim}}}$. Formally it can be written as
+%				$$
+%					\vect A = \sum \vect P^T_\text{cell}\,\vect A_\text{cell}\,\vect P_\text{cell},
+%				$$
+%				where rectangular matrix~$\vect P_\text{cell}$ connect local cell d.o.f. to global mesh ones.
+%			\end{subfigure}
+%		\end{figure}
+%	\end{frame}	
+%
+%	\begin{frame}[fragile]{Sparse matrix-vector multiplication}
+%		It is very common that $\vect A$ is represented in CSR format. In this case multiplication takes the form:
+%		\begin{lstlisting}[basicstyle=\small]
+%			for (i = 0; i < nrows; ++i) 
+%				for (k = rowptr[i]; k < rowptr[i+1]; ++k)
+%					z[i] += val[k] * x[colind[k]];
+%		\end{lstlisting}
+%		CSR is optimal in the sense that both storage and multiplication require~$O(n)$ resources. However,
+%		\begin{enumerate}
+%			\item there is no spatial locality for~$\vect x$, and
+%			\item there are 5 memory refs vs. 2 arithmetic operations, i.e. the routine is memory bandwidth bounded
+%		\end{enumerate}
+%	\end{frame}	
+%	
+%	\begin{frame}{Matrix-free approach: Idea}
+%	The alternative approach is \textbf{matrix-free} implementation: Do not store the big sparse matrix~$\vect A$ but compute the action of its cell matrices~$\vect A_\text{cell}$ on the fly.
+%		\begin{enumerate}
+%			\item Low arithmetic intensity is the bottleneck for matrix-based computations; Matrix-free evaluation that reads less data can be advantageous even if it does more computations
+%			\item Matrix-free methods have a better complexity per degree of freedom:~$O(k)$ vs.~$O(k^\text{dim})$ for matrix-based methods ($k$ is basis func degree); This makes it attractive for higher order elements $k > 1$ and dim = 3~\includegraphics[width=12px]{clown.png}
+%		\end{enumerate}
+%	\end{frame}	
+%	
+%	\begin{frame}{Matrix-free approach: Implementation}
+%		Our aim is to rewrite
+%		$$
+%			\vect x \mapsto \vect A\,\vect x = \big(\sum \vect P^T_\text{cell}\,\vect A_\text{cell}\,\vect P_\text{cell}\big)\vect x = \sum \vect P^T_\text{cell}\,\vect A_\text{cell}\,\vect x_\text{cell}
+%		$$
+%		w/o storing local matrices~$\vect A_\text{cell}$. Note that
+%		$$
+%			\vect A_{\text{cell}\,ij} = \int_\text{ref\_cell} \vect K_\text{ref\_cell}\,(\vect J^{-T}_\text{cell}\,\nabla\phi_{\text{ref\_cell}\,j})\cdot(\vect J^{-T}_\text{cell}\,\nabla\phi_{\text{ref\_cell}\,i})\,|\text{det}\,
+%			\vect J|
+%		$$
+%		can be rewritten as
+%		$$
+%			\vect A_\text{cell}\,\vect x_\text{cell} = \vect B^{T}_\text{ref\_cell}\,\vect J^{-1}_\text{cell}\,\vect D_\text{cell}\,\vect J^{-T}_\text{cell}\,\vect B_\text{ref\_cell}\,\vect x_\text{cell}
+%		$$
+%		with \textbf{fixed} gradient mtx~$\vect B_\text{ref\_cell}$, reference-to-physical cell transformation~$\vect J_\text{cell}$, and diagonal diffusion mtx~$D_\text{cell}$. This gives us
+%		\begin{itemize}
+%			\item computation of~$\vect A_\text{cell}$ on the fly via applying matrix-vector products repeatedly, and
+%			\item $O(k)$ complexity per degree of freedom
+%		\end{itemize}
+%	\end{frame}	
+%
+%	\begin{frame}{Execution time}
+%		We stick to a 3D diffusion problem, $L = -\nabla\cdot(\vect K\,\nabla)$, with~$k = 3$. Our measurements are based on 5 matrix-vector multiplications per run on \href{https://portal.tacc.utexas.edu/user-guides/stampede2}{TAAC} skx-normal partition node (2 sockets, 48 cores, 96 threads)
+%		\begin{figure}
+%			\centering
+%			\begin{subfigure}{.5\linewidth}
+%				\centering\small{CSR}
+%				\includegraphicsw{clTime.pdf}
+%			\end{subfigure}%
+%			\begin{subfigure}{.5\linewidth}
+%				\centering\small{Matrix-free}
+%				\includegraphicsw{mfTime.pdf}
+%			\end{subfigure}%
+%			\vskip .5cm
+%			\begin{subfigure}{.8\linewidth}
+%				\centering\small{Best thread team sizes}
+%				\vskip .3cm
+%				\includegraphicsw{bestTime.pdf}
+%			\end{subfigure}
+%		\end{figure}
+%	\end{frame}
+%
+%	\begin{frame}{Other statistics}
+%		\begin{figure}
+%			\centering\small{Cache miss ratio (left) and instructions per cycle (right) for the largest matrix size~$n = 912\,673$}
+%			\vskip .3cm
+%			\begin{subfigure}{.5\linewidth}
+%				\includegraphicsw{cache.pdf}
+%			\end{subfigure}%
+%			\begin{subfigure}{.5\linewidth}
+%				\includegraphicsw{inst.pdf}
+%			\end{subfigure}%
+%			\vskip .5cm
+%			\begin{subfigure}{.8\linewidth}
+%				\centering\small{Energy consumption for a single thread; TDP = 150\,W}
+%				\vskip .3cm
+%				\includegraphicsw{rapl.pdf}
+%			\end{subfigure}
+%		\end{figure}
+%	\end{frame}	
+%	
+%	\begin{frame}{Summary}
+%		Matrix-free vs. CSR matrix-vector multiplication approaches: 
+%		\begin{itemize}
+%			\item We see that the matrix-free approach scales well as one increases the number of threads, and CSR does not; Moreover,
+%			\item its inst/cycle ratio decays linearly (not the case for CSR!), and \% of cache misses decreases from 31 to 20 (vs. 41 to 34 for CSR). For the largest mtx size its execution time turns out to be $>2$ times better than ditto for CSR approach.
+%			\item The energy consumption is quite comparable; Matrix-free approach spends slightly more energy on CPU than CSR approach.
+%			\item This confirms that the matrix-free approach is much less memory bandwidth bounded than CSR.
+%			\item Some drawbacks: Constructing matrix-free preconditioners is not straightforward; Implementation for more complicated stiffness matrices is not straightforward
+%		\end{itemize}
+%	\end{frame}
+	
+\end{document}
+
+
